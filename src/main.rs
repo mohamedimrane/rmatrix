@@ -11,13 +11,15 @@ const CHARACTERS: &[char] = &[
     ';', ':', 'ß', '∂', 'h', '∆', 'ø', 'π', 'å', '≥', '≤', '÷', '¿', '◊', '¡', '€', '#', '∞', '≠',
     '‡', '≈',
 ];
+const COLOR: termion::color::Rgb = termion::color::Rgb(46, 248, 47);
 
 fn main() {
     let _stdout = std::io::stdout().into_raw_mode().unwrap();
 
     print!(
-        "{}{}{}",
+        "{}{}{}{}",
         termion::clear::All,
+        termion::color::Fg(COLOR),
         termion::cursor::Goto(1, 1),
         termion::cursor::Hide
     );
