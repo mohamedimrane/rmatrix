@@ -1,3 +1,4 @@
+use rand::seq::SliceRandom;
 use termion::raw::IntoRawMode;
 
 const CHARACTERS: &[char] = &[
@@ -27,8 +28,13 @@ fn main() {
 }
 
 fn refresh_screen() -> Result<(), std::io::Error> {
+    let character = CHARACTERS.choose(&mut rand::thread_rng()).unwrap();
+
     print!("Hello 1\n");
     print!("{}Hello 2\n", termion::cursor::Goto(1, 2));
     print!("{}Hello 3\n", termion::cursor::Goto(1, 1));
+
+    print!("{}{}", termion::cursor::Goto(1, 3), character);
+
     Ok(())
 }
