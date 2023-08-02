@@ -1,3 +1,5 @@
+use termion::raw::IntoRawMode;
+
 const CHARACTERS: &[char] = &[
     'ｦ', 'ｧ', 'ｨ', 'ｩ', 'ｪ', 'ｫ', 'ｬ', 'ｭ', 'ｮ', 'ｯ', 'ｰ', 'ｱ', 'ｲ', 'ｳ', 'ｴ', 'ｵ', 'ｶ', 'ｷ', 'ｸ',
     'ｹ', 'ｺ', 'ｻ', 'ｼ', 'ｽ', 'ｾ', 'ｿ', 'ﾀ', 'ﾁ', 'ﾂ', 'ﾃ', 'ﾄ', 'ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ', 'ﾊ', 'ﾋ',
@@ -10,5 +12,23 @@ const CHARACTERS: &[char] = &[
 ];
 
 fn main() {
-    println!("Hello, world!");
+    let _stdout = std::io::stdout().into_raw_mode().unwrap();
+
+    print!(
+        "{}{}{}",
+        termion::clear::All,
+        termion::cursor::Goto(1, 1),
+        termion::cursor::Hide
+    );
+
+    if let Err(e) = refresh_screen() {
+        panic!("{}", e);
+    }
+}
+
+fn refresh_screen() -> Result<(), std::io::Error> {
+    print!("Hello 1\n");
+    print!("{}Hello 2\n", termion::cursor::Goto(1, 2));
+    print!("{}Hello 3\n", termion::cursor::Goto(1, 1));
+    Ok(())
 }
