@@ -35,12 +35,16 @@ fn refresh_screen(terminal_size: (u16, u16)) -> Result<(), std::io::Error> {
     let x_pos = rng.gen_range(0..terminal_size.0) + 1;
     let character = CHARACTERS.choose(&mut rng).unwrap();
 
-    print!(
-        "{}{}{}",
-        termion::color::Fg(COLOR),
-        termion::cursor::Goto(x_pos, 1),
-        character
-    );
+    draw(*character, (x_pos, 0), COLOR);
 
     Ok(())
+}
+
+fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
+    print!(
+        "{}{}{}",
+        termion::cursor::Goto(pos.0, pos.1),
+        termion::color::Fg(color),
+        character
+    );
 }
