@@ -1,4 +1,4 @@
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, Rng};
 use termion::raw::IntoRawMode;
 
 const CHARACTERS: &[char] = &[
@@ -15,6 +15,7 @@ const COLOR: termion::color::Rgb = termion::color::Rgb(46, 248, 47);
 
 fn main() {
     let _stdout = std::io::stdout().into_raw_mode().unwrap();
+    let terminal_size = termion::terminal_size().unwrap();
 
     print!(
         "{}{}{}{}",
@@ -24,19 +25,22 @@ fn main() {
         termion::cursor::Hide
     );
 
-    if let Err(e) = refresh_screen() {
+    if let Err(e) = refresh_screen(terminal_size) {
         panic!("{}", e);
     }
 }
 
-fn refresh_screen() -> Result<(), std::io::Error> {
-    let character = CHARACTERS.choose(&mut rand::thread_rng()).unwrap();
+fn refresh_screen(terminal_size: (u16, u16)) -> Result<(), std::io::Error> {
+    let mut rng = rand::thread_rng();
+    let x_pos = rng.gen_range(0..terminal_size.0) + 1;
+    let character = CHARACTERS.choose(&mut rng).unwrap();
 
-    print!("Hello 1\n");
-    print!("{}Hello 2\n", termion::cursor::Goto(1, 2));
-    print!("{}Hello 3\n", termion::cursor::Goto(1, 1));
-
-    print!("{}{}", termion::cursor::Goto(1, 3), character);
+    print!(
+        "{}{}{}",
+        termion::color::Fg(COLOR),
+        termion::cursor::Goto(x_pos, 1),
+        character
+    );
 
     Ok(())
 }
