@@ -39,8 +39,7 @@ impl Drop {
                     continue;
                 }
 
-                let offset = self.y_offset as usize + 1;
-                draw(*c, (self.x_pos, (index + offset) as u16), COLOR);
+                draw(*c, (self.x_pos, (index + 1) as u16), COLOR);
             }
 
             self.y_offset += 1;
@@ -90,7 +89,7 @@ fn refresh_screen(
         let mut rng = rand::thread_rng();
         let length = rng.gen_range(5..=20);
         let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-        let speed = std::time::Duration::from_millis(rng.gen_range(100..=200));
+        let speed = std::time::Duration::from_millis(rng.gen_range(100..=300));
         let characters = generate_character_vec(terminal_size.1, &mut rng);
 
         drops.push(Drop {
@@ -128,10 +127,10 @@ fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
     );
 }
 
-fn generate_character_vec(length: u16, rng: &mut rand::rngs::ThreadRng) -> Vec<char> {
-    let mut result = Vec::with_capacity(length as usize);
+fn generate_character_vec(terminal_height: u16, rng: &mut rand::rngs::ThreadRng) -> Vec<char> {
+    let mut result = Vec::with_capacity(terminal_height as usize);
 
-    for _ in 0..length {
+    for _ in 0..terminal_height {
         let character = CHARACTERS.choose(rng).unwrap();
         result.push(*character);
     }
