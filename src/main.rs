@@ -1,4 +1,5 @@
 use rand::{seq::SliceRandom, Rng};
+use std::io::Write;
 use termion::raw::IntoRawMode;
 
 const CHARACTERS: &[char] = &[
@@ -24,8 +25,16 @@ fn main() {
         termion::cursor::Hide
     );
 
-    if let Err(e) = refresh_screen(terminal_size) {
-        panic!("{}", e);
+    let interval = std::time::Duration::from_millis(200);
+    loop {
+        if let Err(e) = refresh_screen(terminal_size) {
+            panic!("{}", e);
+        }
+
+        if let Err(e) = std::io::stdout().flush() {
+            panic!("{}", e);
+        }
+        std::thread::sleep(interval);
     }
 }
 
