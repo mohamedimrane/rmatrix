@@ -18,9 +18,8 @@ fn main() {
     let terminal_size = termion::terminal_size().unwrap();
 
     print!(
-        "{}{}{}{}",
+        "{}{}{}",
         termion::clear::All,
-        termion::color::Fg(COLOR),
         termion::cursor::Goto(1, 1),
         termion::cursor::Hide
     );
@@ -42,9 +41,10 @@ fn refresh_screen(terminal_size: (u16, u16)) -> Result<(), std::io::Error> {
 
 fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
     print!(
-        "{}{}{}",
+        "{}{}{}{}",
         termion::cursor::Goto(pos.0, pos.1),
         termion::color::Fg(color),
-        character
+        character,
+        termion::color::Fg(termion::color::Reset)
     );
 }
