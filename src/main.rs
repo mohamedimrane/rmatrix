@@ -14,6 +14,13 @@ const CHARACTERS: &[char] = &[
 ];
 const COLOR: termion::color::Rgb = termion::color::Rgb(46, 248, 47);
 
+struct Drop {
+    lenght: u16,
+    x_pos: u16,
+    speed: u64,
+    characters: Vec<char>,
+}
+
 fn main() {
     let _stdout = std::io::stdout().into_raw_mode().unwrap();
     let terminal_size = termion::terminal_size().unwrap();
@@ -25,25 +32,43 @@ fn main() {
         termion::cursor::Hide
     );
 
-    let interval = std::time::Duration::from_millis(200);
-    loop {
-        if let Err(e) = refresh_screen(terminal_size) {
-            panic!("{}", e);
-        }
+    let mut drops = Vec::new();
 
-        if let Err(e) = std::io::stdout().flush() {
-            panic!("{}", e);
+    let interval = std::time::Duration::from_millis(200);
+    let mut next_time = std::time::Instant::now();
+    loop {
+        if std::time::Instant::now() >= next_time {
+            if let Err(e) = refresh_screen(&mut drops, terminal_size) {
+                panic!("{}", e);
+            }
+
+            if let Err(e) = std::io::stdout().flush() {
+                panic!("{}", e);
+            }
+
+            next_time += interval;
         }
-        std::thread::sleep(interval);
     }
 }
 
-fn refresh_screen(terminal_size: (u16, u16)) -> Result<(), std::io::Error> {
+fn refresh_screen(drops: &mut Vec<Drop>, terminal_size: (u16, u16)) -> Result<(), std::io::Error> {
     let mut rng = rand::thread_rng();
     let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-    let character = CHARACTERS.choose(&mut rng).unwrap();
+    let speed = rng.gen_range(100..=200);
+    let characters = generate_character_vec(terminal_size.1, &mut rng);
 
-    draw(*character, (x_pos, 0), COLOR);
+    drops.push(Drop {
+        lenght: terminal_size.1,
+        x_pos,
+        speed,
+        characters,
+    });
+
+    for drop in drops.iter() {
+        for (index, c) in drop.characters.iter().enumerate() {
+            draw(*c, (drop.x_pos, (index + 1) as u16), COLOR);
+        }
+    }
 
     Ok(())
 }
@@ -56,4 +81,15 @@ fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
         character,
         termion::color::Fg(termion::color::Reset)
     );
+}
+
+fn generate_character_vec(length: u16, rng: &mut rand::rngs::ThreadRng) -> Vec<char> {
+    let mut result = Vec::with_capacity(length as usize);
+
+    for _ in 0..length {
+        let character = CHARACTERS.choose(rng).unwrap();
+        result.push(*character);
+    }
+
+    result
 }
