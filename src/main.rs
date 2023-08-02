@@ -34,40 +34,43 @@ fn main() {
 
     let mut drops = Vec::new();
 
-    let interval = std::time::Duration::from_millis(200);
-    let mut next_time = std::time::Instant::now();
+    let mut next_time_spawn = std::time::Instant::now();
     loop {
-        if std::time::Instant::now() >= next_time {
-            if let Err(e) = refresh_screen(&mut drops, terminal_size) {
-                panic!("{}", e);
-            }
+        if let Err(e) = refresh_screen(&mut drops, terminal_size, &mut next_time_spawn) {
+            panic!("{}", e);
+        }
 
-            if let Err(e) = std::io::stdout().flush() {
-                panic!("{}", e);
-            }
-
-            next_time += interval;
+        if let Err(e) = std::io::stdout().flush() {
+            panic!("{}", e);
         }
     }
 }
 
-fn refresh_screen(drops: &mut Vec<Drop>, terminal_size: (u16, u16)) -> Result<(), std::io::Error> {
-    let mut rng = rand::thread_rng();
-    let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-    let speed = rng.gen_range(100..=200);
-    let characters = generate_character_vec(terminal_size.1, &mut rng);
+fn refresh_screen(
+    drops: &mut Vec<Drop>,
+    terminal_size: (u16, u16),
+    next_time_spawn: &mut std::time::Instant,
+) -> Result<(), std::io::Error> {
+    if std::time::Instant::now() >= *next_time_spawn {
+        let mut rng = rand::thread_rng();
+        let x_pos = rng.gen_range(0..terminal_size.0) + 1;
+        let speed = rng.gen_range(100..=200);
+        let characters = generate_character_vec(terminal_size.1, &mut rng);
 
-    drops.push(Drop {
-        lenght: terminal_size.1,
-        x_pos,
-        speed,
-        characters,
-    });
+        drops.push(Drop {
+            lenght: terminal_size.1,
+            x_pos,
+            speed,
+            characters,
+        });
 
-    for drop in drops.iter() {
-        for (index, c) in drop.characters.iter().enumerate() {
-            draw(*c, (drop.x_pos, (index + 1) as u16), COLOR);
+        for drop in drops.iter() {
+            for (index, c) in drop.characters.iter().enumerate() {
+                draw(*c, (drop.x_pos, (index + 1) as u16), COLOR);
+            }
         }
+
+        *next_time_spawn += std::time::Duration::from_millis(200);
     }
 
     Ok(())
