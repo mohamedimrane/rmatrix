@@ -27,14 +27,17 @@ struct Drop {
 }
 
 impl Drop {
-    fn draw_if_timer_is_elapsed(&mut self, stdout: &mut RawTerminal<Stdout>) {
+    fn draw_if_timer_is_elapsed(
+        &mut self,
+        stdout: &mut RawTerminal<Stdout>,
+    ) -> Result<(), std::io::Error> {
         if std::time::Instant::now() < self.next_time {
-            return;
+            return Ok(());
         }
 
         print!("{}", termion::cursor::Goto(self.x_pos, self.y_offset));
         let (x, y) = stdout.cursor_pos().unwrap();
-        write!(stdout, "{}{}", " ", termion::cursor::Goto(x - 1, y));
+        write!(stdout, "{}{}", " ", termion::cursor::Goto(x - 1, y))?;
 
         for (index, c) in self.characters.iter().enumerate() {
             let iu16 = index as u16;
@@ -48,6 +51,8 @@ impl Drop {
         self.y_offset += 1;
 
         self.reset_timer();
+
+        Ok(())
     }
 
     fn reset_timer(&mut self) {
@@ -98,7 +103,7 @@ fn refresh_screen(
 
     let mut index = 0;
     while index < drops.len() {
-        drops[index].draw_if_timer_is_elapsed(stdout);
+        drops[index].draw_if_timer_is_elapsed(stdout)?;
 
         if drops[index].y_offset > terminal_size.1 {
             drops.remove(index);
