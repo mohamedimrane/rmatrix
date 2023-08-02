@@ -28,24 +28,26 @@ struct Drop {
 
 impl Drop {
     fn draw_if_timer_is_elapsed(&mut self, stdout: &mut RawTerminal<Stdout>) {
-        if std::time::Instant::now() >= self.next_time {
-            print!("{}", termion::cursor::Goto(self.x_pos, self.y_offset));
-            let (x, y) = stdout.cursor_pos().unwrap();
-            write!(stdout, "{}{}", " ", termion::cursor::Goto(x - 1, y));
+        if std::time::Instant::now() < self.next_time {
+            return;
+        }
 
-            for (index, c) in self.characters.iter().enumerate() {
-                let iu16 = index as u16;
-                if iu16 < self.y_offset || iu16 > self.length + self.y_offset {
-                    continue;
-                }
+        print!("{}", termion::cursor::Goto(self.x_pos, self.y_offset));
+        let (x, y) = stdout.cursor_pos().unwrap();
+        write!(stdout, "{}{}", " ", termion::cursor::Goto(x - 1, y));
 
-                draw(*c, (self.x_pos, (index + 1) as u16), COLOR);
+        for (index, c) in self.characters.iter().enumerate() {
+            let iu16 = index as u16;
+            if iu16 < self.y_offset || iu16 > self.length + self.y_offset {
+                continue;
             }
 
-            self.y_offset += 1;
-
-            self.reset_timer();
+            draw(*c, (self.x_pos, (index + 1) as u16), COLOR);
         }
+
+        self.y_offset += 1;
+
+        self.reset_timer();
     }
 
     fn reset_timer(&mut self) {
@@ -57,19 +59,21 @@ fn main() {
     let mut stdout = std::io::stdout().into_raw_mode().unwrap();
     let terminal_size = termion::terminal_size().unwrap();
 
-    print!(
-        "{}{}{}",
-        termion::clear::All,
-        termion::cursor::Goto(1, 1),
-        termion::cursor::Hide
-    );
+    print!("{}{}", termion::clear::All, termion::cursor::Hide);
 
     let mut drops = Vec::new();
 
+    let mut rng = rand::thread_rng();
+
     let mut next_time_spawn = std::time::Instant::now();
     loop {
-        if let Err(e) = refresh_screen(&mut drops, terminal_size, &mut stdout, &mut next_time_spawn)
-        {
+        if let Err(e) = refresh_screen(
+            &mut drops,
+            &mut rng,
+            terminal_size,
+            &mut stdout,
+            &mut next_time_spawn,
+        ) {
             panic!("{}", e);
         }
 
@@ -81,25 +85,13 @@ fn main() {
 
 fn refresh_screen(
     drops: &mut Vec<Drop>,
+    rng: &mut rand::rngs::ThreadRng,
     terminal_size: (u16, u16),
     stdout: &mut RawTerminal<Stdout>,
     next_time_spawn: &mut std::time::Instant,
 ) -> Result<(), std::io::Error> {
     if std::time::Instant::now() >= *next_time_spawn {
-        let mut rng = rand::thread_rng();
-        let length = rng.gen_range(5..=20);
-        let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-        let speed = std::time::Duration::from_millis(rng.gen_range(100..=300));
-        let characters = generate_character_vec(terminal_size.1, &mut rng);
-
-        drops.push(Drop {
-            length,
-            x_pos,
-            y_offset: 0,
-            speed,
-            next_time: std::time::Instant::now(),
-            characters,
-        });
+        drops.push(generate_drop(terminal_size, rng));
 
         *next_time_spawn += std::time::Duration::from_millis(100);
     }
@@ -107,10 +99,12 @@ fn refresh_screen(
     let mut index = 0;
     while index < drops.len() {
         drops[index].draw_if_timer_is_elapsed(stdout);
+
         if drops[index].y_offset > terminal_size.1 {
             drops.remove(index);
             continue;
         }
+
         index += 1;
     }
 
@@ -125,6 +119,22 @@ fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
         character,
         termion::color::Fg(termion::color::Reset)
     );
+}
+
+fn generate_drop(terminal_size: (u16, u16), rng: &mut rand::rngs::ThreadRng) -> Drop {
+    let length = rng.gen_range(5..=20);
+    let x_pos = rng.gen_range(0..terminal_size.0) + 1;
+    let speed = std::time::Duration::from_millis(rng.gen_range(100..=300));
+    let characters = generate_character_vec(terminal_size.1, rng);
+
+    Drop {
+        length,
+        x_pos,
+        y_offset: 0,
+        speed,
+        next_time: std::time::Instant::now(),
+        characters,
+    }
 }
 
 fn generate_character_vec(terminal_height: u16, rng: &mut rand::rngs::ThreadRng) -> Vec<char> {
