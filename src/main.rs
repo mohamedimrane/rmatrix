@@ -1,5 +1,3 @@
-use termion::raw::IntoRawMode;
-
 const CHARACTERS: &[char] = &[
     'ｦ', 'ｧ', 'ｨ', 'ｩ', 'ｪ', 'ｫ', 'ｬ', 'ｭ', 'ｮ', 'ｯ', 'ｰ', 'ｱ', 'ｲ', 'ｳ', 'ｴ', 'ｵ', 'ｶ', 'ｷ', 'ｸ',
     'ｹ', 'ｺ', 'ｻ', 'ｼ', 'ｽ', 'ｾ', 'ｿ', 'ﾀ', 'ﾁ', 'ﾂ', 'ﾃ', 'ﾄ', 'ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ', 'ﾊ', 'ﾋ',
@@ -12,6 +10,5 @@ const CHARACTERS: &[char] = &[
 ];
 
 fn main() {
-    let _stdout = std::io::stdout().into_raw_mode().unwrap();
     println!("Hello, world!");
 }
