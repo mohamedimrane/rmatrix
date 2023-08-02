@@ -17,8 +17,21 @@ const COLOR: termion::color::Rgb = termion::color::Rgb(46, 248, 47);
 struct Drop {
     lenght: u16,
     x_pos: u16,
-    speed: u64,
+    speed: std::time::Duration,
+    next_time: std::time::Instant,
     characters: Vec<char>,
+}
+
+impl Drop {
+    fn draw(&mut self) {
+        for (index, c) in self.characters.iter().enumerate() {
+            draw(*c, (self.x_pos, (index + 1) as u16), COLOR);
+        }
+    }
+
+    fn reset_timer(&mut self) {
+        self.next_time = std::time::Instant::now() + self.speed;
+    }
 }
 
 fn main() {
@@ -54,23 +67,25 @@ fn refresh_screen(
     if std::time::Instant::now() >= *next_time_spawn {
         let mut rng = rand::thread_rng();
         let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-        let speed = rng.gen_range(100..=200);
+        let speed = std::time::Duration::from_millis(rng.gen_range(100..=200));
         let characters = generate_character_vec(terminal_size.1, &mut rng);
 
         drops.push(Drop {
             lenght: terminal_size.1,
             x_pos,
             speed,
+            next_time: std::time::Instant::now() + speed,
             characters,
         });
 
-        for drop in drops.iter() {
-            for (index, c) in drop.characters.iter().enumerate() {
-                draw(*c, (drop.x_pos, (index + 1) as u16), COLOR);
-            }
-        }
+        *next_time_spawn += std::time::Duration::from_millis(800);
+    }
 
-        *next_time_spawn += std::time::Duration::from_millis(200);
+    for drop in drops.iter_mut() {
+        if std::time::Instant::now() >= drop.next_time {
+            drop.draw();
+            drop.reset_timer();
+        }
     }
 
     Ok(())
