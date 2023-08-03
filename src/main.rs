@@ -135,7 +135,7 @@ fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
 fn generate_drop(terminal_size: (u16, u16), rng: &mut rand::rngs::ThreadRng) -> Drop {
     let length = rng.gen_range(5..=15);
     let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-    let speed = std::time::Duration::from_millis(rng.gen_range(100..=400));
+    let speed = std::time::Duration::from_millis(rng.gen_range(50..=400));
     let characters = generate_character_vec(terminal_size.1, rng);
 
     Drop {
