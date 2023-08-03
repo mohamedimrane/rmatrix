@@ -99,7 +99,7 @@ fn refresh_screen(
     if std::time::Instant::now() >= *next_time_spawn {
         drops.push(generate_drop(terminal_size, rng));
 
-        *next_time_spawn += std::time::Duration::from_millis(100);
+        *next_time_spawn += std::time::Duration::from_millis(80);
     }
 
     let mut index = 0;
@@ -128,9 +128,9 @@ fn draw(character: char, pos: (u16, u16), color: termion::color::Rgb) {
 }
 
 fn generate_drop(terminal_size: (u16, u16), rng: &mut rand::rngs::ThreadRng) -> Drop {
-    let length = rng.gen_range(5..=20);
+    let length = rng.gen_range(5..=15);
     let x_pos = rng.gen_range(0..terminal_size.0) + 1;
-    let speed = std::time::Duration::from_millis(rng.gen_range(100..=300));
+    let speed = std::time::Duration::from_millis(rng.gen_range(100..=400));
     let characters = generate_character_vec(terminal_size.1, rng);
 
     Drop {
