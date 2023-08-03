@@ -17,6 +17,7 @@ const CHARACTERS: &[char] = &[
     'ص', 'ق', 'ر', 'ش', 'ت', 'ث', 'خ', 'ذ', 'ض', 'ظ', 'غ', 'ء',
 ];
 const COLOR: termion::color::Rgb = termion::color::Rgb(46, 248, 47);
+const COLOR_END: termion::color::Rgb = termion::color::Rgb(230, 255, 230);
 
 struct Drop {
     length: u16,
@@ -46,7 +47,11 @@ impl Drop {
                 continue;
             }
 
-            draw(*c, (self.x_pos, (index + 1) as u16), COLOR);
+            if iu16 == self.length + self.y_offset {
+                draw(*c, (self.x_pos, (index + 1) as u16), COLOR_END);
+            } else {
+                draw(*c, (self.x_pos, (index + 1) as u16), COLOR);
+            }
         }
 
         self.y_offset += 1;
